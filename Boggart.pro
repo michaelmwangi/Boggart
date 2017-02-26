@@ -15,7 +15,8 @@ DEPENDPATH += $$PWD/../../../usr/local/include
 
 HEADERS += \
     broker.h \
-    service.h
+    service.h \
+    requestsqueue.h
 
 unix:!macx: LIBS += -L$$PWD/../../../usr/local/lib/ -lzmqpp
 

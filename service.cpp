@@ -5,7 +5,11 @@ Service::Service(std::string servicename){
 }
 
 void Service::AddWork(std::string workload){
-    requests_.push_back(workload);
+    requests_.push(workload);
+}
+
+void Service::AddWorker(std::shared_ptr<Worker> worker){
+    workers_.push(worker);
 }
 
 int Service::TotalWork(){

@@ -6,8 +6,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    Broker broker("tcp://*", "5557");
+    Broker broker("tcp://*", "5777");
     broker.StartBroker();
-    cout << "Hello World!" << endl;
     return 0;
 }
