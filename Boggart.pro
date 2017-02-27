@@ -22,3 +22,5 @@ unix:!macx: LIBS += -L$$PWD/../../../usr/local/lib/ -lzmqpp
 
 INCLUDEPATH += $$PWD/../../../usr/local/include
 DEPENDPATH += $$PWD/../../../usr/local/include
+
+unix:!macx: LIBS += -lpthread-2.22

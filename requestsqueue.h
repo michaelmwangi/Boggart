@@ -3,7 +3,6 @@
 
 #include <condition_variable>
 #include <memory>
-#include <thread>
 #include <mutex>
 #include <queue>
 
@@ -13,6 +12,7 @@ private:
     std::queue<std::string> requests_;
     std::condition_variable mcond_;
 public:
+
     void Push(std::string payload){
         std::unique_lock<std::mutex> lock{mut_};
         requests_.push(payload);
@@ -23,10 +23,14 @@ public:
         std::unique_lock<std::mutex> lock{mut_};
         mcond_.wait(lock, [this]{return !requests_.empty();});
         std::string payload = requests_.front();
+        requests_.pop();
         lock.unlock();
         return payload;
     }
 
+    int Size(){
+        return requests_.size();
+    }
 };
 
 #endif // REQUESTSQUEUE_H

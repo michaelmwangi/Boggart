@@ -27,7 +27,7 @@ void Broker::StartBroker(){
                 std::string empty = msg.get(1);
                 std::string signature = msg.get(2);
                 std::string service_name = msg.get(3);
-
+                std::cout<<"Hello there t"<<std::endl;
                 if(signature.compare("BOGC01") == 0){
                     // handle client request
                     std::string payload = msg.get(4);
@@ -58,8 +58,8 @@ std::shared_ptr<Service> Broker::GetService(std::string service_name){
 
 void Broker::HandleClient(std::string service_name, std::string payload){
     std::shared_ptr<Service> service = GetService(service_name);
-    service->AddWork(payload);
-    std::cout<<"Service "<<service_name<<" has "<< services_[service_name]->TotalWork()<<" Items"<<std::endl;
+    service->AddRequest(payload);
+    std::cout<<"Service "<<service_name<<" has "<< services_[service_name]->TotalRequests()<<" Items"<<std::endl;
 }
 
 void Broker::HandleWorker(std::string service_name, std::string addr){
