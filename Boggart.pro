@@ -1,6 +1,6 @@
 TEMPLATE = app
 CONFIG += static
-CONFIG += console c++11
+CONFIG += console c++14
 CONFIG -= app_bundle
 CONFIG -= qt
 
@@ -16,7 +16,7 @@ DEPENDPATH += $$PWD/../../../usr/local/include
 HEADERS += \
     broker.h \
     service.h \
-    requestsqueue.h
+    blockingqueue.h
 
 unix:!macx: LIBS += -L$$PWD/../../../usr/local/lib/ -lzmqpp
 

@@ -8,7 +8,9 @@
 #include <thread>
 #include <iostream>
 #include <functional>
-#include "requestsqueue.h"
+#include <zmqpp/zmqpp.hpp>
+#include "blockingqueue.h"
+
 
 struct Worker{
     std::string address; // address to use when routing messages
@@ -24,14 +26,16 @@ struct Worker{
 class Service{
 private:
     std::string servicename_;
-    std::queue<std::shared_ptr<Worker>> workers_;
-    RequestsQueue requests_;
-    void ConsumeRequest();
+    std::string broker_port_;
+    BlockingQueue<std::shared_ptr<Worker>> workers_;
+    BlockingQueue<std::string> requests_;
+
 public:
-    Service(std::string);
+    Service(std::string, std::string);
     void AddRequest(std::string);
     void AddWorker(std::shared_ptr<Worker>);
     int TotalRequests();
+    void ConsumeRequest();
 };
 
 

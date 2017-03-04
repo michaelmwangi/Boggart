@@ -12,11 +12,13 @@ class Broker{
 private:
     std::string host_;
     std::string port_;
-    std::string endpoint_url_;
+    std::string endpoint_url_;    
+    std::unique_ptr<zmqpp::socket> server_;
     std::map<std::string, std::shared_ptr<Service>> services_;
     std::shared_ptr<Service> GetService(std::string service);
     void HandleClient(std::string service, std::string payload);
-    void HandleWorker(std::string service, std::string addr);
+    void HandleWorker(zmqpp::message msg);
+    void HandleInternalCommunication(zmqpp::message msg);
 public:
     Broker(std::string qhost, std::string qport);
 //    ~Broker();

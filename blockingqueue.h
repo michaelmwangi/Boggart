@@ -6,30 +6,31 @@
 #include <mutex>
 #include <queue>
 
-class RequestsQueue{
+template<typename T>
+class BlockingQueue{
 private:
     std::mutex mut_;
-    std::queue<std::string> requests_;
+    std::queue<T> queue_;
     std::condition_variable mcond_;
 public:
 
-    void Push(std::string payload){
+    void Push(T payload){
         std::unique_lock<std::mutex> lock{mut_};
-        requests_.push(payload);
+        queue_.push(payload);
         mcond_.notify_one();
     }
 
-    std::string WaitAndPop(){
+    T WaitAndPop(){
         std::unique_lock<std::mutex> lock{mut_};
-        mcond_.wait(lock, [this]{return !requests_.empty();});
-        std::string payload = requests_.front();
-        requests_.pop();
+        mcond_.wait(lock, [this]{return !queue_.empty();});
+        T payload = queue_.front();
+        queue_.pop();
         lock.unlock();
         return payload;
     }
 
     int Size(){
-        return requests_.size();
+        return queue_.size();
     }
 };
 
