@@ -28,11 +28,11 @@ private:
     std::string servicename_;
     std::string broker_port_;
     BlockingQueue<std::shared_ptr<Worker>> workers_;
-    BlockingQueue<std::string> requests_;
+    BlockingQueue<std::map<std::string, std::string>> requests_;
 
 public:
     Service(std::string, std::string);
-    void AddRequest(std::string);
+    void AddRequest(std::string jobid, std::string workpayload);
     void AddWorker(std::shared_ptr<Worker>);
     int TotalRequests();
     void ConsumeRequest();

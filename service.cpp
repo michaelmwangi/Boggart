@@ -16,19 +16,28 @@ void Service::ConsumeRequest(){
     while(true){
         // grab worker first before we start consuming
         std::shared_ptr<Worker> worker = workers_.WaitAndPop();
-        std::string work_payload = requests_.WaitAndPop();
+        std::map<std::string, std::string> work_payload = requests_.WaitAndPop();
+        std::string job_id;
+        std::string job;
+        for (auto &x: work_payload){
+            // only has one mapping
+            job_id = x.first;
+            job = x.second;
+        }
         zmqpp::message msg;
         msg.push_back("");
         msg.push_back("BOGI01"); // internal service signature
         msg.push_back("WORK");
         msg.push_back(worker->address);
-        msg.push_back(work_payload);
+        msg.push_back(job_id); // job id
+        msg.push_back(job); // work payload
         socket.send(msg);
     }
 }
 
-void Service::AddRequest(std::string workload){
-    requests_.Push(workload);
+void Service::AddRequest(std::string jobid, std::string workpayload){
+    std::map<std::string, std::string> work = {{jobid, workpayload}};
+    requests_.Push(work);
 }
 
 void Service::AddWorker(std::shared_ptr<Worker> worker){
