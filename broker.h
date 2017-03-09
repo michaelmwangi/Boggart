@@ -9,6 +9,7 @@
 #include <zmqpp/zmqpp.hpp>
 #include "service.h"
 #include "opcodes.h"
+#include "spdlog/spdlog.h"
 
 
 class Broker{
@@ -16,13 +17,13 @@ private:
     std::string host_;
     std::string port_;
     std::string endpoint_url_;    
-    ReturnCodes returncodes_;
+    OpCodes returncodes_;
     std::unique_ptr<zmqpp::socket> server_;
     std::map<std::string, std::shared_ptr<Service>> services_;
     std::map<std::string, std::string> async_work_results_;
     std::map<std::string, std::string> sync_work_results_;
     std::shared_ptr<Service> GetService(std::string service);
-    ReturnCodes GetJobResults(std::string jobid, std::string& job_res);
+    OpCodes GetJobResults(std::string jobid, std::string& job_res);
     void HandleClient(zmqpp::message msg);
     void HandleWorker(zmqpp::message msg);
     void HandleInternalCommunication(zmqpp::message msg);

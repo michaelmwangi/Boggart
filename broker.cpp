@@ -18,32 +18,29 @@ void Broker::StartBroker(){
         bool has_items = poller.poll();
         if (has_items){
             zmqpp::message msg;
-            server_->receive(msg);
-            if (msg.parts() <= 0 ){
-                server_->send("Number of arguments not satisfiable");
-            }
-            else{                
-                std::string signature = msg.get(2);
-                if(signature == "BOGC01"){
-                    // handle client request
-                    if(msg.parts() >= 5){                        
-                        HandleClient(msg.copy());
-                    } else{
-                        zmqpp::message ret_msg {msg.get(0), "", "Unsatisfiable number of arguments passed"};
-                        server_->send(ret_msg);
-                    }
-               }else if(signature == "BOGW01"){
-                    // handle worker requests
-                    std::cout<<"Handling worker request "<< msg.parts()<<std::endl;
-                    std::string service_name = msg.get(4);
-                    HandleWorker(msg.copy());
-               }else if(signature == "BOGI01"){
-                    HandleInternalCommunication(msg.copy());
-               }else{
-                    zmqpp::message ret_msg {msg.get(0), "", "Unknown signature passed "+msg.get(2)};
+            server_->receive(msg);            
+
+            std::string signature = msg.get(2);
+            if(signature == "BOGC01"){
+                // handle client request
+                if(msg.parts() >= 5){
+                    HandleClient(msg.copy());
+                } else{
+                    zmqpp::message ret_msg {msg.get(0), "", "Unsatisfiable number of arguments passed"};
                     server_->send(ret_msg);
                 }
-            }
+           }else if(signature == "BOGW01"){
+                // handle worker requests
+                std::cout<<"Handling worker request "<< msg.parts()<<std::endl;
+                std::string service_name = msg.get(4);
+                HandleWorker(msg.copy());
+           }else if(signature == "BOGI01"){
+                HandleInternalCommunication(msg.copy());
+           }else{
+                zmqpp::message ret_msg {msg.get(0), "", "Unknown signature passed "+msg.get(2)};
+                server_->send(ret_msg);
+           }
+
         }
     }
 }
@@ -87,14 +84,15 @@ void Broker::HandleClient(zmqpp::message msg){
         service->AddRequest(job_id, payload);
         std::cout<<"Service "<<service_name<<" has "<< services_[service_name]->TotalRequests()<<" Items"<<std::endl;
     }else if (client_cmd == "GETJOB"){
+        std::cout<<"Getting the job"<<std::endl;
         std::string job_id = msg.get(4);
         std::string job_results;
-        ReturnCodes ret_code = GetJobResults(job_id, job_results);
-        int int_ret_code = static_cast<std::underlying_type<ReturnCodes>::type>(ret_code);
+        OpCodes ret_code = GetJobResults(job_id, job_results);
+        int int_ret_code = static_cast<std::underlying_type<OpCodes>::type>(ret_code);
         zmqpp::message msg;
         msg.push_back(client_addr);
         msg.push_back("");
-        msg.push_back(int_ret_code);
+        msg.push_back(std::to_string(int_ret_code));
         msg.push_back(job_results);
         server_->send(msg);
     }
@@ -131,7 +129,7 @@ void Broker::HandleWorker(zmqpp::message msg){
             sync_work_results_.erase(job_id);
         }else{
             // store async work
-            async_work_results_.insert(std::make_pair(job_id, resp));
+            async_work_results_[job_id] =  resp;
         }
 
 
@@ -157,21 +155,21 @@ void Broker::HandleInternalCommunication(zmqpp::message msg){
     }
 }
 
-ReturnCodes Broker::GetJobResults(std::string jobid, std::string& job_res){
+OpCodes Broker::GetJobResults(std::string jobid, std::string& job_res){
     auto job = async_work_results_.find(jobid);
-    ReturnCodes resp_code;
+    OpCodes resp_code;
     if (job != async_work_results_.end()){
         job_res = job->second;
         if (job_res == ""){
-            resp_code = ReturnCodes::pending;
+            resp_code = OpCodes::pending;
             job_res = "Pending";
         }else{
-            resp_code = ReturnCodes::ok;
+            resp_code = OpCodes::ok;
         }
 
     }else{
         job_res = jobid + " does not exist";
-        resp_code = ReturnCodes::not_found;
+        resp_code = OpCodes::not_found;
     }
 
     return resp_code;
