@@ -9,7 +9,6 @@
 #include <zmqpp/zmqpp.hpp>
 #include "service.h"
 #include "opcodes.h"
-#include "spdlog/spdlog.h"
 
 
 class Broker{
