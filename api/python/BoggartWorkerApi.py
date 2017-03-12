@@ -40,8 +40,8 @@ class BoggartWorkerApi(object):
         # set up logging
         if loglevel not in LOG_LEVEL.keys():
             loglevel = "DEBUG"
-        logger = logging.getLogger(__name__)
-        logger.setLevel(LOG_LEVEL[loglevel])
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(LOG_LEVEL[loglevel])
 
         handler = logging.FileHandler("boggartworker.log")
         handler.setLevel(LOG_LEVEL[loglevel])
@@ -49,7 +49,7 @@ class BoggartWorkerApi(object):
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         handler.setFormatter(formatter)
 
-        logger.addHandler(handler)
+        self.logger.addHandler(handler)
 
     def _send_to_broker(self, msg_parts):
         """
@@ -67,11 +67,11 @@ class BoggartWorkerApi(object):
         param func: the function name
         raises ValueError if there's already a registered task
         """
-        logger.info("Registering  task "+func)
+        self.logger.info("Registering  task "+str(func))
         if len(self.registered_tasks) == 1:
             raise ValueError("Cannot register task {0}. Task {1} already registered"\
                     .format(func, self.registered_tasks[0]))
-                
+
         self.registered_tasks.append(func)
 
     def run(self):
@@ -88,10 +88,10 @@ class BoggartWorkerApi(object):
             res = poller.poll()
             if self.socket in dict(res).keys():
                 resp = self.socket.recv_multipart()
-                logger.debug("Received "+resp)
+                self.logger.debug("Received "+resp)
                 job_id = resp[0]
                 job_payload = resp[1]
-                logger.debug("Sending task to worker ")
+                self.logger.debug("Sending task to worker ")
                 self.worker_pool.add_task(self.registered_tasks[0], job_payload, bog_job_id=job_id)
 
             elif self.inter_socket in dict(res).keys():
@@ -103,7 +103,7 @@ class BoggartWorkerApi(object):
 
                 self.socket.send_multipart(broker_resp)
             else:
-                logger.debug("Unknown socket ", res[0])
+                self.logger.debug("Unknown socket ", res[0])
                 print "Unknown socket "+dict(res)
 
     class ThreadPool(object):
