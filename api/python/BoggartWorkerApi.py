@@ -4,6 +4,7 @@ The Boggart worker API
 import zmq
 import json
 import time
+import logging
 from threading import Thread
 
 try:
@@ -11,12 +12,13 @@ try:
 except ImportError:
     import queue.Queue as Queue
 
+LOG_LEVEL = {'DEBUG': logging.DEBUG, 'INFO': logging.INFO}
 
-class BoggartWorker(object):
+class BoggartWorkerApi(object):
     """
     Boggart worker inspired by the http://rfc.zeromq.org/spec:7
     """
-    def __init__(self, service, host=None, port=None, numworkers=1):
+    def __init__(self, service, host=None, port=None, numworkers=1, loglevel="DEBUG"):
         self.service = service
         # TODO validate the host and port formats here
         if host and port:
@@ -35,6 +37,19 @@ class BoggartWorker(object):
         self.inter_socket = self.context.socket(zmq.ROUTER)
         self.inter_socket.bind(self.internal_endpoint_url)
 
+        # set up logging
+        if loglevel not in LOG_LEVEL.keys():
+            loglevel = "DEBUG"
+        logger = logging.getLogger(__name__)
+        logger.setLevel(LOG_LEVEL[loglevel])
+
+        handler = logging.FileHandler("boggartworker.log")
+        handler.setLevel(LOG_LEVEL[loglevel])
+
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+
+        logger.addHandler(handler)
 
     def _send_to_broker(self, msg_parts):
         """
@@ -151,11 +166,12 @@ class BoggartWorker(object):
                         self.worker_socket.send_multipart(payload)
                         self.tasks.task_done()
 
+# example
 def testing(slep):
     print "I was called doing the work "+str(slep)
     return "These are the results "
 
 if __name__ == "__main__":
-    worker = BoggartWorker("test", numworkers=5)
+    worker = BoggartWorkerApi("test", numworkers=5)
     worker.register_task(testing)
     worker.run()
