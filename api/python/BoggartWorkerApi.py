@@ -69,9 +69,7 @@ class BoggartWorker(object):
         poller.register(self.socket, zmq.POLLIN)
         poller.register(self.inter_socket, zmq.POLLIN)
         while True:
-            print "waiting my address is ", self.socket.identity
             res = poller.poll()
-            print "Got something"
             if self.socket in dict(res).keys():
                 resp = self.socket.recv_multipart()
                 print resp
@@ -80,12 +78,10 @@ class BoggartWorker(object):
 
                 self.worker_pool.add_task(self.registered_tasks[0], job_payload, bog_job_id=job_id)
 
-                
             elif self.inter_socket in dict(res).keys():
                 resp = self.inter_socket.recv_multipart()
                 job_id = resp[1]
                 job_results = resp[2]
-                print "Sending back ",resp
                 broker_resp = ['', 'BOGW01'.encode(), "WORKER_RESP",\
                                 self.service, job_id, job_results]
 
