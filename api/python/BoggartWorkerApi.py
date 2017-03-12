@@ -88,7 +88,7 @@ class BoggartWorkerApi(object):
             res = poller.poll()
             if self.socket in dict(res).keys():
                 resp = self.socket.recv_multipart()
-                self.logger.debug("Received "+resp)
+                self.logger.debug("Received "+str(resp))
                 job_id = resp[0]
                 job_payload = resp[1]
                 self.logger.debug("Sending task to worker ")
