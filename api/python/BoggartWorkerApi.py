@@ -67,10 +67,11 @@ class BoggartWorkerApi(object):
         param func: the function name
         raises ValueError if there's already a registered task
         """
+        logger.info("Registering  task "+func)
         if len(self.registered_tasks) == 1:
             raise ValueError("Cannot register task {0}. Task {1} already registered"\
                     .format(func, self.registered_tasks[0]))
-
+                
         self.registered_tasks.append(func)
 
     def run(self):
@@ -87,10 +88,10 @@ class BoggartWorkerApi(object):
             res = poller.poll()
             if self.socket in dict(res).keys():
                 resp = self.socket.recv_multipart()
-                print resp
+                logger.debug("Received "+resp)
                 job_id = resp[0]
                 job_payload = resp[1]
-
+                logger.debug("Sending task to worker ")
                 self.worker_pool.add_task(self.registered_tasks[0], job_payload, bog_job_id=job_id)
 
             elif self.inter_socket in dict(res).keys():
@@ -102,6 +103,7 @@ class BoggartWorkerApi(object):
 
                 self.socket.send_multipart(broker_resp)
             else:
+                logger.debug("Unknown socket ", res[0])
                 print "Unknown socket "+dict(res)
 
     class ThreadPool(object):
