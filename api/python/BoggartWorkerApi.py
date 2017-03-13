@@ -22,7 +22,7 @@ class BoggartWorkerApi(object):
         self.service = service
         # TODO validate the host and port formats here
         if host and port:
-            self.endpoint_url = "{host}:{port}".format(host=host, port=port)
+            self.endpoint_url = "tcp://{host}:{port}".format(host=host, port=port)
         else:
             self.endpoint_url = "tcp://localhost:5777"
 
@@ -103,8 +103,7 @@ class BoggartWorkerApi(object):
 
                 self.socket.send_multipart(broker_resp)
             else:
-                self.logger.debug("Unknown socket ", res[0])
-                print "Unknown socket "+dict(res)
+                self.logger.debug("Unknown socket "+res[0])
 
     class ThreadPool(object):
         """
@@ -152,13 +151,12 @@ class BoggartWorkerApi(object):
             def run(self):
                 while True:
                     func, args, kwargs = self.tasks.get()
-                    print args, kwargs
                     job_id = kwargs['bog_job_id']
                     del kwargs['bog_job_id']
                     error = False
                     try:
                         res = str(func(*args, **kwargs))
-                    except Exception, e:
+                    except Exception as e:
                         error = True
                         err_str = str(e)
                     finally:
@@ -169,8 +167,8 @@ class BoggartWorkerApi(object):
                         self.tasks.task_done()
 
 # example
-def testing(slep):
-    print "I was called doing the work "+str(slep)
+def testing(work):
+    print ("I was called doing the work "+str(slep))
     return "These are the results "
 
 if __name__ == "__main__":
