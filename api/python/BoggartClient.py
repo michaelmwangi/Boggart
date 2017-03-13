@@ -26,7 +26,7 @@ class BoggartClient(object):
         self.signature = 'BOGC01'.encode()
         if host and port:
             # TODO validate host and port formats here
-            self.endpoint = "{host}:{port}".format(host=host, port=port)
+            self.endpoint = "tcp://{host}:{port}".format(host=host, port=port)
         else:
             self.endpoint = QUEUE_ENDPOINT
 

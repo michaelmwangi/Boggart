@@ -10,7 +10,7 @@ from threading import Thread
 try:
     from Queue import Queue
 except ImportError:
-    import queue.Queue as Queue
+    from queue import Queue 
 
 LOG_LEVEL = {'DEBUG': logging.DEBUG, 'INFO': logging.INFO}
 
@@ -79,7 +79,7 @@ class BoggartWorkerApi(object):
         Starts and manages the worker process
         """
         # send ready command on startup
-        ready = ['', 'BOGW01'.encode(), "READY", self.service, str(self.num_workers)]
+        ready = [b'', 'BOGW01'.encode(), b"READY", self.service.encode(), str(self.num_workers).encode()]
         self._send_to_broker(ready)
         poller = zmq.Poller()
         poller.register(self.socket, zmq.POLLIN)
@@ -96,10 +96,10 @@ class BoggartWorkerApi(object):
 
             elif self.inter_socket in dict(res).keys():
                 resp = self.inter_socket.recv_multipart()
-                job_id = resp[1]
-                job_results = resp[2]
-                broker_resp = ['', 'BOGW01'.encode(), "WORKER_RESP",\
-                                self.service, job_id, job_results]
+                job_id = resp[1] if isinstance(resp[1], bytes) else resp[1].encode()
+                job_results = resp[2] if isinstance(resp[2], bytes) else resp[2].encode()
+                broker_resp = [b'', b'BOGW01', b"WORKER_RESP",\
+                                self.service.encode(), job_id, job_results]
 
                 self.socket.send_multipart(broker_resp)
             else:
@@ -162,13 +162,14 @@ class BoggartWorkerApi(object):
                     finally:
                         if error:
                             res = err_str
+                        res = res if isinstance(res, bytes) else res.encode()
                         payload = [job_id, res]
                         self.worker_socket.send_multipart(payload)
                         self.tasks.task_done()
 
 # example
 def testing(work):
-    print ("I was called doing the work "+str(slep))
+    print ("I was called doing the work "+str(work))
     return "These are the results "
 
 if __name__ == "__main__":
