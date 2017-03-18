@@ -79,7 +79,6 @@ void Broker::HandleClient(zmqpp::message msg){
             server_->send(ret_msg);
 
         }
-
         std::shared_ptr<Service> service = GetService(service_name);
         service->AddRequest(job_id, payload);
         std::cout<<"Service "<<service_name<<" has "<< services_[service_name]->TotalRequests()<<" Items"<<std::endl;
@@ -87,7 +86,7 @@ void Broker::HandleClient(zmqpp::message msg){
         std::cout<<"Getting the job"<<std::endl;
         std::string job_id = msg.get(4);
         std::string job_results;
-        OpCodes ret_code = GetJobResults(job_id, job_results);
+        OpCodes ret_code = GetJobResults(job_id, job_results);       
         int int_ret_code = static_cast<std::underlying_type<OpCodes>::type>(ret_code);
         zmqpp::message msg;
         msg.push_back(client_addr);
@@ -165,6 +164,8 @@ OpCodes Broker::GetJobResults(std::string jobid, std::string& job_res){
             job_res = "Pending";
         }else{
             resp_code = OpCodes::ok;
+            // purge the results from store to clear space
+            async_work_results_.erase(job)
         }
 
     }else{

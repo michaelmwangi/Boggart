@@ -72,7 +72,8 @@ class BoggartClient(object):
         Get the job (identified by the jobid )results from the broker
         """
         client_sock = self.context.socket(zmq.REQ)
-        cmd = "GETJOB" # get job results command
+        cmd = b"GETJOB" # get job results command
+        jobid = jobid if isinstance(jobid, bytes) else jobid.encode()
         payload = [self.signature, cmd, jobid]
         client_sock.connect(self.endpoint)
         poller = zmq.Poller()
