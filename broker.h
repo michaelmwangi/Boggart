@@ -7,8 +7,10 @@
 #include <type_traits>
 #include <uuid/uuid.h>
 #include <zmqpp/zmqpp.hpp>
+#include <glog/logging.h>
 #include "service.h"
 #include "opcodes.h"
+#include "opdefinitions.h"
 
 
 class Broker{
@@ -16,7 +18,7 @@ private:
     std::string host_;
     std::string port_;
     std::string endpoint_url_;    
-    OpCodes returncodes_;
+    OpDefinitions opdefinitions_;
     std::unique_ptr<zmqpp::socket> server_;
     std::map<std::string, std::shared_ptr<Service>> services_;
     std::map<std::string, std::string> async_work_results_;

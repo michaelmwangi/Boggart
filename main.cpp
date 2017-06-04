@@ -1,12 +1,15 @@
 #include <iostream>
-#include <zmqpp/zmqpp.hpp>
-#include "broker.h"
+#include "network/boggartserver.h"
 
 using namespace std;
 
 int main(int argc, char *argv[])
-{
-    Broker broker("tcp://*", "5777");
-    broker.StartBroker();
+{    
+    cout<<"Started"<<endl;
+    Network network("127.0.0.1", "8090");
+    network.run();
     return 0;
 }
+
+
+

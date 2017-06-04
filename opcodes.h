@@ -1,6 +1,8 @@
 #ifndef OPCODES_H
 #define OPCODES_H
 
+
+// this structure defines the return opertion return codes to the bogggart client
 enum class OpCodes{
     pending = 202,
     ok = 200,

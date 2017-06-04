@@ -1,9 +1,12 @@
 #include "broker.h"
 
+
 Broker::Broker(std::string qhost, std::string qport){
     host_ = qhost;
     port_ = qport;
+    // validate host and port format here
     endpoint_url_ = qhost + ":" + qport;
+    LOG(INFO) << "Connecting to "+endpoint_url_;
 }
 
 void Broker::StartBroker(){
@@ -21,20 +24,22 @@ void Broker::StartBroker(){
             server_->receive(msg);            
 
             std::string signature = msg.get(2);
-            if(signature == "BOGC01"){
+            if(signature == opdefinitions_.client_signature){
                 // handle client request
+                LOG(INFO) << "Received client request";
                 if(msg.parts() >= 5){
                     HandleClient(msg.copy());
                 } else{
+                    LOG(INFO) << "Could not proceed with client request due to Unsatisfiable numbder of args passed";
                     zmqpp::message ret_msg {msg.get(0), "", "Unsatisfiable number of arguments passed"};
                     server_->send(ret_msg);
                 }
-           }else if(signature == "BOGW01"){
+           }else if(signature == opdefinitions_.worker_signature){
                 // handle worker requests
                 std::cout<<"Handling worker request "<< msg.parts()<<std::endl;
                 std::string service_name = msg.get(4);
                 HandleWorker(msg.copy());
-           }else if(signature == "BOGI01"){
+           }else if(signature == opdefinitions_.client_signature){
                 HandleInternalCommunication(msg.copy());
            }else{
                 zmqpp::message ret_msg {msg.get(0), "", "Unknown signature passed "+msg.get(2)};
@@ -165,7 +170,7 @@ OpCodes Broker::GetJobResults(std::string jobid, std::string& job_res){
         }else{
             resp_code = OpCodes::ok;
             // purge the results from store to clear space
-            async_work_results_.erase(job)
+            async_work_results_.erase(job);
         }
 
     }else{
