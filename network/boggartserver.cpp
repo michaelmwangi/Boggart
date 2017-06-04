@@ -90,7 +90,7 @@ void Network::run(){
                         std::cout<<"Got a new connection"<<std::endl;
                     }
                 }else{
-                    // client just sent us some data
+                    // someone just sent us some data
                     int num_read = recv(i, buf, READ_BUF_SIZE, 0);
                     if(num_read <= 0){
                         if(num_read == 0){
@@ -118,23 +118,24 @@ void Network::run(){
 void Network::ProcessIncomingData(const char * data){
     rapidjson::Document document;
     document.Parse(data);
-    assert(document.HasMember("signature"));
-    assert(document.HasMember("service"));
-    assert(document.HasMember("payload"));
+    if (document.HasMember('signature') || document.HasMember('service') || document.HasMember('payload')){
+        std::string signature = document["signature"].GetString();
+        std::string service = document["service"].GetString();
+        std::string payload = document["payload"].GetString();
 
-    std::string signature = document["signature"].GetString();
-    std::string service = document["service"].GetString();
-    std::string payload = document["payload"].GetString();
-
-    if (signature == OpDefinitions::client_signature){
-        ProcessClientData(payload);
-    }else if(signature == OpDefinitions::worker_signature){
-        ProcessWorkerData(payload);
-    }else if(signature == OpDefinitions::internal_worker_signature){
-        ProcessInternalData(payload);
+        if (signature == OpDefinitions::client_signature){
+            ProcessClientData(payload);
+        }else if(signature == OpDefinitions::worker_signature){
+            ProcessWorkerData(payload);
+        }else if(signature == OpDefinitions::internal_worker_signature){
+            ProcessInternalData(payload);
+        }else{
+            std::cout<<"Unknown signature passed... ignoring request"<<std::endl;
+        }
     }else{
-        std::cout<<"Unknown signature passed... ignoring request"<<std::endl;
+        std::cout<<"Not all mandatory fields [signature service payload] set"<<std:endl;
     }
+    
 
     
 }
