@@ -56,6 +56,7 @@ void Network::run(){
     while(true){
         read_fds = tracker;
         std::cout<<"waiting..."<<std::endl;
+        // for now using select but will change to epoll later
         if(select(fd_max+1, &read_fds, NULL, NULL, NULL) == -1){
             std::cout<<"Could not wait for a connection"<<std::endl;
 
