@@ -75,6 +75,7 @@ void Network::run(){
             if(FD_ISSET(i, &read_fds)){
                 if(i == server_fd_){
                     // we have a new connection
+                    // although we refer to the connection as a client. The connection request may also be from a worker
                     client_len = sizeof(client_addr);
 
                     int client_fd = accept(server_fd_, (struct sockaddr *)&client_addr, &client_len);
@@ -89,6 +90,7 @@ void Network::run(){
                             fd_max = client_fd;
                         }                        
                         std::cout<<"Got a new connection"<<std::endl;
+                        AddConnection(client_fd);
                     }
                 }else{
                     // someone just sent us some data

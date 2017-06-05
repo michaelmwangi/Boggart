@@ -18,14 +18,19 @@
 
 #define READ_BUF_SIZE (1024*16) // arbitrary buf read size 16 kb
 
+class 
+
 class Network{
 private:
     std::string host_;
     std::string port_;
     int server_fd_;
+    std::unordered_map<int, > connections;
     void ProcessIncomingData(const char *payload);
+    void AddConnection(int filedescriptor);
+    void RemoveConnection(int filedescriptor);
 public:
-    Network(std::string, std::string);
+    Network(std::string host, std::string port);
     void run();    
 };
 
