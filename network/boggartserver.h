@@ -12,21 +12,23 @@
 #include <errno.h>
 #include <stdio.h>
 #include <netdb.h>
-#include "opdefintions.h"
+#include <stdexcept>
+#include <unordered_map>
+#include "opdefinitions.h"
+#include "boggartclient.h"
 #include "rapidjson/document.h"
 
 
-#define READ_BUF_SIZE (1024*16) // arbitrary buf read size 16 kb
-
-class 
+#define READ_BUF_SIZE (1024*16) // arbitrary buf read size 16 kb  
 
 class Network{
 private:
     std::string host_;
     std::string port_;
     int server_fd_;
-    std::unordered_map<int, > connections;
-    void ProcessIncomingData(const char *payload);
+    std::unordered_map<int, BoggartClient> boggart_clients_;
+    void ProcessClientData(std::string payload, int fd);
+    void ProcessIncomingData(const char *payload, int fd);
     void AddConnection(int filedescriptor);
     void RemoveConnection(int filedescriptor);
 public:

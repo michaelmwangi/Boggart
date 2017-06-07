@@ -108,7 +108,7 @@ void Network::run(){
                         std::cout<<"Read these bytes "<<buf<<std::endl;
 
                         // plugin into boggart space now
-                        ProcessIncomingData(buf);
+                        ProcessIncomingData(buf, i);
                         memset(buf, 0, READ_BUF_SIZE);
                     }
                 }
@@ -118,27 +118,50 @@ void Network::run(){
 }
 
 
-void Network::ProcessIncomingData(const char * data){
+void Network::ProcessIncomingData(const char * data, int fd){
     rapidjson::Document document;
     document.Parse(data);
-    if (document.HasMember('signature') || document.HasMember('service') || document.HasMember('payload')){
+    if (document.HasMember("signature") || document.HasMember("service") || document.HasMember("payload")){
         std::string signature = document["signature"].GetString();
         std::string service = document["service"].GetString();
         std::string payload = document["payload"].GetString();
 
         if (signature == OpDefinitions::client_signature){
-            ProcessClientData(payload);
+            ProcessClientData(payload, fd);
         }else if(signature == OpDefinitions::worker_signature){
-            ProcessWorkerData(payload);
+//            ProcessWorkerData(payload);
+
         }else if(signature == OpDefinitions::internal_worker_signature){
-            ProcessInternalData(payload);
+//            ProcessInternalData(payload);
         }else{
             std::cout<<"Unknown signature passed... ignoring request"<<std::endl;
         }
     }else{
-        std::cout<<"Not all mandatory fields [signature service payload] set"<<std:endl;
+        std::cout<<"Not all mandatory fields [signature service payload] set"<<std::endl;
     }
-    
+       
+}
 
-    
+void Network::ProcessClientData(std::string payload, int fd){
+ // fetch the client from store
+    try{
+        BoggartClient boggart_client = boggart_clients_.at(fd);
+            boggart_client.current_payload = payload;
+    } catch (const std::out_of_range &excp){
+        std::cout<<"Could not get client for "<<fd<<std::endl;
+    }
+
+}
+
+void Network::AddConnection(int filedescriptor){
+    BoggartClient boggart_client;
+    boggart_client.file_descriptor = filedescriptor;
+    boggart_client.current_payload = std::string("", READ_BUF_SIZE);
+    boggart_client.id = 0; // TODO change this
+    boggart_clients_[filedescriptor] = boggart_client;
+}
+
+
+void Network::RemoveConnection(int filedescriptor){
+    boggart_clients_.erase(filedescriptor);
 }
