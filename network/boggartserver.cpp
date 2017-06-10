@@ -121,7 +121,7 @@ void Network::run(){
 void Network::ProcessIncomingData(const char * data, int fd){
     rapidjson::Document document;
     document.Parse(data);
-    if (document.HasMember("signature") || document.HasMember("service") || document.HasMember("payload")){
+    if (document.HasMember("signature") && document.HasMember("service") && document.HasMember("payload")){
         std::string signature = document["signature"].GetString();
         std::string service = document["service"].GetString();
         std::string payload = document["payload"].GetString();
