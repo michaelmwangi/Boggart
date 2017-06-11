@@ -27,10 +27,11 @@ private:
     std::string port_;
     int server_fd_;
     std::unordered_map<int, BoggartClient> boggart_clients_;
-    void ProcessClientData(std::string payload, int fd);
+    void ProcessClientData(std::string payload, std::string service, int fd);
     void ProcessIncomingData(const char *payload, int fd);
     void AddConnection(int filedescriptor);
     void RemoveConnection(int filedescriptor);
+    void CreateService(std::string servicename);
 public:
     Network(std::string host, std::string port);
     void run();    

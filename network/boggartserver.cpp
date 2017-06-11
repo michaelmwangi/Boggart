@@ -1,4 +1,4 @@
-#include "boggartserver.h"
+﻿#include "boggartserver.h"
 
 Network::Network(std::string host, std::string port): host_(host), port_(port)
 {
@@ -125,12 +125,12 @@ void Network::ProcessIncomingData(const char * data, int fd){
         std::string signature = document["signature"].GetString();
         std::string service = document["service"].GetString();
         std::string payload = document["payload"].GetString();
+        std::string command = document["command"].GetString();
 
         if (signature == OpDefinitions::client_signature){
-            ProcessClientData(payload, fd);
+            ProcessClientData(payload, service, fd);
         }else if(signature == OpDefinitions::worker_signature){
-//            ProcessWorkerData(payload);
-
+           ProcessWorkerData(payload);
         }else if(signature == OpDefinitions::internal_worker_signature){
 //            ProcessInternalData(payload);
         }else{
@@ -142,15 +142,20 @@ void Network::ProcessIncomingData(const char * data, int fd){
        
 }
 
-void Network::ProcessClientData(std::string payload, int fd){
+void Network::ProcessClientData(std::string payload, std::string service, int fd){
  // fetch the client from store
     try{
         BoggartClient boggart_client = boggart_clients_.at(fd);
-            boggart_client.current_payload = payload;
+        boggart_client.current_payload = payload;
+
     } catch (const std::out_of_range &excp){
         std::cout<<"Could not get client for "<<fd<<std::endl;
     }
 
+}
+
+void Network::ProcessWorkerData(std::string payload, service, command, fd){
+    
 }
 
 void Network::AddConnection(int filedescriptor){
@@ -158,6 +163,7 @@ void Network::AddConnection(int filedescriptor){
     boggart_client.file_descriptor = filedescriptor;
     boggart_client.current_payload = std::string("", READ_BUF_SIZE);
     boggart_client.id = 0; // TODO change this
+
     boggart_clients_[filedescriptor] = boggart_client;
 }
 

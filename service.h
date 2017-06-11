@@ -28,14 +28,17 @@ private:
     std::string servicename_;
     std::string broker_port_;
     BlockingQueue<std::shared_ptr<Worker>> workers_;
-    BlockingQueue<std::map<std::string, std::string>> requests_;
+    BlockingQueue<std::map<std::string, std::string>> jobs_; // holds the jobs to be processed by workers
+    BlockingQueue<std::map<std::string, std::string>> async_job_results_; // holds the result of asynchronous job results
+    BlockingQueue<std::map<std::string, std::string>> sync_job_results_; // // holds the result of synchronous job results
 
 public:
     Service(std::string, std::string);
-    void AddRequest(std::string jobid, std::string workpayload);
+    void AddJob(std::string jobid, std::string workpayload);
+    std::string GetResult(std::string jobid, bool sync=false);
     void AddWorker(std::shared_ptr<Worker>);
     int TotalRequests();
-    void ConsumeRequest();
+    void ConsumeJob();
 };
 
 

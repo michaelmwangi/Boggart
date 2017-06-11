@@ -56,7 +56,9 @@ HEADERS += \
     rapidjson/schema.h \
     rapidjson/stream.h \
     rapidjson/stringbuffer.h \
-    rapidjson/writer.h
+    rapidjson/writer.h \
+    boggartclient.h \
+    boggartworker.h
 
 unix:!macx: LIBS += -L$$PWD/../../../usr/local/lib/ -lzmqpp
 
