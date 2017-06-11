@@ -121,7 +121,7 @@ void Network::run(){
 void Network::ProcessIncomingData(const char * data, int fd){
     rapidjson::Document document;
     document.Parse(data);
-    if (document.HasMember("signature") && document.HasMember("service") && document.HasMember("payload")){
+    if (document.HasMember("signature") && document.HasMember("service") && document.HasMember("payload") && document.HasMember("command")){
         std::string signature = document["signature"].GetString();
         std::string service = document["service"].GetString();
         std::string payload = document["payload"].GetString();
@@ -155,7 +155,11 @@ void Network::ProcessClientData(std::string payload, std::string service, int fd
 }
 
 void Network::ProcessWorkerData(std::string payload, service, command, fd){
-    
+    if(command == OpCommands::worker_ready){
+        // add new worker
+    }else if(command == OpCommands::worker_resp){
+        // get worker response
+    }
 }
 
 void Network::AddConnection(int filedescriptor){
