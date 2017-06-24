@@ -7,7 +7,8 @@
 #include <queue>
 
 template<typename T>
-class BlockingQueue{
+class BoggartQueue{
+
 private:
     std::mutex mut_;
     std::queue<T> queue_;
@@ -32,6 +33,7 @@ public:
     int Size(){
         return queue_.size();
     }
+
 };
 
 #endif // REQUESTSQUEUE_H

@@ -6,8 +6,6 @@
 #include <memory>
 #include <type_traits>
 #include <uuid/uuid.h>
-#include <zmqpp/zmqpp.hpp>
-#include <glog/logging.h>
 #include "service.h"
 #include "opcodes.h"
 #include "opdefinitions.h"
@@ -15,11 +13,7 @@
 
 class Broker{
 private:
-    std::string host_;
-    std::string port_;
-    std::string endpoint_url_;    
-    OpDefinitions opdefinitions_;
-    std::unique_ptr<zmqpp::socket> server_;
+    Signatures opdefinitions_;
     std::map<std::string, std::shared_ptr<Service>> services_;
     std::map<std::string, std::string> async_work_results_;
     std::map<std::string, std::string> sync_work_results_;
@@ -29,9 +23,7 @@ private:
     void HandleWorker(zmqpp::message msg);
     void HandleInternalCommunication(zmqpp::message msg);
 public:
-    Broker(std::string qhost, std::string qport);
-//    ~Broker();
-    void StartBroker();
+    Broker(std::string qhost, std::string qport);;
 };
 
 #endif // BROKER_H

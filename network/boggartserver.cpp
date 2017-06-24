@@ -1,6 +1,6 @@
 ﻿#include "boggartserver.h"
 
-Network::Network(std::string host, std::string port): host_(host), port_(port)
+BoggartServer::BoggartServer(std::string host, std::string port): host_(host), port_(port)
 {
     struct addrinfo hints, *info_list;
     memset(&hints, 0, sizeof(hints));
@@ -35,7 +35,7 @@ Network::Network(std::string host, std::string port): host_(host), port_(port)
     freeaddrinfo(info_list);
 }
 
-void Network::run(){
+void BoggartServer::run(){
     if(listen(server_fd_, 255) == -1){
         std::cout<<"Could not listen "<<std::endl;
         perror("listen()");
@@ -117,8 +117,14 @@ void Network::run(){
     }
 }
 
-
-void Network::ProcessIncomingData(const char * data, int fd){
+/**
+ * @brief BoggartServer::ProcessIncomingData
+ * This acts as the router function when data is received by boggart by examining the signatures
+ * of the payload
+ * @param data: the incoming payload from the client (boggart worker or boggart client)
+ * @param fd: socket file descriptor
+ */
+void BoggartServer::ProcessIncomingData(const char * data, int fd){
     rapidjson::Document document;
     document.Parse(data);
     if (document.HasMember("signature") && document.HasMember("service") && document.HasMember("payload") && document.HasMember("command")){
@@ -127,51 +133,90 @@ void Network::ProcessIncomingData(const char * data, int fd){
         std::string payload = document["payload"].GetString();
         std::string command = document["command"].GetString();
 
-        if (signature == OpDefinitions::client_signature){
+        if (signature == Signatures::client_signature){
+            std::cout<<"Processing data from the client"<<std::endl;
             ProcessClientData(payload, service, fd);
-        }else if(signature == OpDefinitions::worker_signature){
-           ProcessWorkerData(payload);
-        }else if(signature == OpDefinitions::internal_worker_signature){
+        }else if(signature == Signatures::worker_signature){
+            std::cout<<"Processing data from the worker"<<std::endl;
+           ProcessWorkerData(payload, service, command, fd);
+        }else if(signature == Signatures::internal_worker_signature){
 //            ProcessInternalData(payload);
         }else{
             std::cout<<"Unknown signature passed... ignoring request"<<std::endl;
         }
     }else{
-        std::cout<<"Not all mandatory fields [signature service payload] set"<<std::endl;
+        std::cout<<"Not all mandatory fields [signature service payload command] set"<<std::endl;
     }
        
 }
 
-void Network::ProcessClientData(std::string payload, std::string service, int fd){
+void BoggartServer::ProcessClientData(std::string payload, std::string servicename, int fd){
  // fetch the client from store
     try{
         BoggartClient boggart_client = boggart_clients_.at(fd);
         boggart_client.current_payload = payload;
-
+        std::shared_ptr<Service> service = GetService(servicename);
+        service->AddJob(payload);
+        std::cout<<"Total jobs pending in service "<<servicename<<" "<<service->TotalJobs()<<std::endl;
     } catch (const std::out_of_range &excp){
         std::cout<<"Could not get client for "<<fd<<std::endl;
     }
 
 }
 
-void Network::ProcessWorkerData(std::string payload, service, command, fd){
-    if(command == OpCommands::worker_ready){
-        // add new worker
+/**
+ * @brief BoggartServer::GetService
+ * gets the service using the servicename param as a unique identifier. If the service is not found a new one is created
+ * using the servicename identifier
+ * @param servicename
+ */
+std::shared_ptr<Service> BoggartServer::GetService(std::string servicename){
+    try{
+         return services_.at(servicename);
+    } catch (const std::out_of_range &excp){
+        // we could not get that service,proceed to create a new one
+        auto service = std::make_shared<Service>(servicename);
+        services_[servicename] = service;
+        std::cout<<"created a new service "<<servicename<<std::endl;
+        return service;
+    }
+
+//    return service;
+}
+
+void BoggartServer::ProcessWorkerData(std::string payload, std::string servicename, std::string command, int fd){
+    std::cout<<"Inside the worker "<<std::endl;
+    if(command == OpCommands::worker_ready){        
+        std::shared_ptr<Service> service = GetService(servicename);
+        // check if we already have this worker already registered
+        bool exists = service->WorkerExists(fd);
+        if (exists){
+            std::cout<<"Worker with filedescriptor "<<fd<<" tried to register twice.. ignoring for now"<<std::endl;
+        }else{
+
+            auto worker = std::make_shared<BoggartWorker>();
+            worker->current_command = command;
+            worker->file_descriptor = fd;
+            worker->id = 0; // TODO change this to issue ID uniquely and incrementaly
+            service->AddWorker(worker);
+
+        }
+
+//        service->AddWorker();
     }else if(command == OpCommands::worker_resp){
         // get worker response
     }
 }
 
-void Network::AddConnection(int filedescriptor){
+void BoggartServer::AddConnection(int filedescriptor){
     BoggartClient boggart_client;
     boggart_client.file_descriptor = filedescriptor;
     boggart_client.current_payload = std::string("", READ_BUF_SIZE);
-    boggart_client.id = 0; // TODO change this
-
+    boggart_client.id = 0; // TODO change this to a unique incremental id 
     boggart_clients_[filedescriptor] = boggart_client;
 }
 
 
-void Network::RemoveConnection(int filedescriptor){
+void BoggartServer::RemoveConnection(int filedescriptor){
     boggart_clients_.erase(filedescriptor);
 }

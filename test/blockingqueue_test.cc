@@ -1,6 +1,6 @@
 #include <string>
 #include <gtest/gtest.h>
-#include "blockingqueue.h"
+#include "boggartqueue.h"
 
 
 class BlockingQueueTest : public testing::Test {
@@ -10,7 +10,7 @@ class BlockingQueueTest : public testing::Test {
     }
 
 
-    BlockingQueue<std::string> queue_;
+    BoggartQueue<std::string> queue_;
     const std::string kTestString = "Test";
 };
 

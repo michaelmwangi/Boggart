@@ -13,27 +13,33 @@
 #include <stdio.h>
 #include <netdb.h>
 #include <stdexcept>
+#include <memory>
 #include <unordered_map>
-#include "opdefinitions.h"
-#include "boggartclient.h"
 #include "rapidjson/document.h"
+#include "opdefinitions.h"
+#include "boggartworker.h"
+#include "boggartclient.h"
+#include "service.h"
 
 
 #define READ_BUF_SIZE (1024*16) // arbitrary buf read size 16 kb  
 
-class Network{
+class BoggartServer{
 private:
     std::string host_;
     std::string port_;
     int server_fd_;
     std::unordered_map<int, BoggartClient> boggart_clients_;
+    std::unordered_map<std::string, std::shared_ptr<Service>> services_;
+    std::shared_ptr<Service> GetService(std::string servicename);
     void ProcessClientData(std::string payload, std::string service, int fd);
+    void ProcessWorkerData(std::string payload, std::string servicename, std::string command, int fd);
     void ProcessIncomingData(const char *payload, int fd);
     void AddConnection(int filedescriptor);
     void RemoveConnection(int filedescriptor);
     void CreateService(std::string servicename);
 public:
-    Network(std::string host, std::string port);
+    BoggartServer(std::string host, std::string port);
     void run();    
 };
 
