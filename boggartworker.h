@@ -8,7 +8,7 @@ struct BoggartWorker{
     int file_descriptor; // socket file descriptor
     std::string current_command; // most recent issued command by this worker
     std::string current_response;
-    int64_t last_activity; // last time in ms we saw action from this guy
+    std::chrono::time_point<std::chrono::system_clock> last_activity; // last time in ms we saw action from this guy
 };
 
 #endif // BOGGARTWORKER_H

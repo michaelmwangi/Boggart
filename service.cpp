@@ -70,9 +70,11 @@ void Service::RegisterWorker(std::shared_ptr<BoggartWorker> worker){
  * timeout threshhold for a worker set in the BoggartConfig
  */
 void Service::PurgeWorkers(){
+    std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
     for(auto & workerentry: registered_workers_){
         auto worker = workerentry.second;
-        std::cout<<"The last activity from this worker was "<<worker->last_activity<<std::endl;
+        std::chrono::duration<double> seconds_diff = now - worker->last_activity;
+        std::cout<<"The last activity from this worker was "<<seconds_diff.count()<<std::endl;
     }
 }
 

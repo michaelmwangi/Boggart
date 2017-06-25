@@ -123,7 +123,9 @@ void BoggartServer::run(){
 
         // maybe the timer expired hmm
         if (timerexpired){
-            std::cout<<"Timer expired"<<std::endl;
+            for (auto & service : services_){
+                service.second->PurgeWorkers();
+            }
         }
     }
 }
@@ -207,7 +209,7 @@ void BoggartServer::ProcessWorkerData(std::string payload, std::string servicena
             worker->current_command = command;
             worker->file_descriptor = fd;
             worker->id = 0; // TODO change this to issue ID uniquely and incrementaly
-            worker->last_activity = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch().count());
+            worker->last_activity = std::chrono::system_clock::now();
 
             service->RegisterWorker(worker);
             service->AddWorker(worker);
