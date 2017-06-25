@@ -14,17 +14,6 @@
 #include "boggartworker.h"
 
 
-struct Worker{
-    std::string address; // address to use when routing messages
-    int expiry; // time to expire before heartbeat
-
-    Worker(std::string addr, int expire=0){
-        address = addr;
-        expiry = expire;
-    }
-};
-
-
 class Service{
 private:
     std::string servicename_;
