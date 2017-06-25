@@ -18,7 +18,6 @@ DEPENDPATH += $$PWD/../../../usr/local/include
 HEADERS += \
     broker.h \
     service.h \
-    opcodes.h \
     opdefinitions.h \
     network/boggartserver.h \
     rapidjson/error/en.h \
@@ -58,7 +57,8 @@ HEADERS += \
     rapidjson/writer.h \
     boggartclient.h \
     boggartworker.h \
-    boggartqueue.h
+    boggartqueue.h \
+    returncodes.h
 
 unix:!macx: LIBS += -L$$PWD/../../../usr/local/lib/ -lzmqpp
 

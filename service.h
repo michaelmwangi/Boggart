@@ -28,6 +28,7 @@ public:
     std::string GetResult(std::string jobid, bool sync=false);
     void AddJob(std::string workpayload);
     void RegisterWorker(std::shared_ptr<BoggartWorker> worker);
+    void PurgeWorkers();
     void AddWorker(std::shared_ptr<BoggartWorker> worker);
     bool WorkerExists(int fd);
     int TotalJobs();

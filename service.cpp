@@ -64,6 +64,23 @@ void Service::RegisterWorker(std::shared_ptr<BoggartWorker> worker){
     registered_workers_[worker->file_descriptor] = worker;
 }
 
+/**
+ * @brief Service::PurgeWorkers
+ * Checks each worker last activity and proceeds to purge ones that havent whose lastactivity is beyond the
+ * timeout threshhold for a worker set in the BoggartConfig
+ */
+void Service::PurgeWorkers(){
+    for(auto & workerentry: registered_workers_){
+        auto worker = workerentry.second;
+        std::cout<<"The last activity from this worker was "<<worker->last_activity<<std::endl;
+    }
+}
+
+/**
+ * @brief Service::AddWorker
+ * adds a worker instance to the working pool from which work is assigned
+ * @param worker
+ */
 void Service::AddWorker(std::shared_ptr<BoggartWorker> worker){
     workers_.Push(worker);
 }

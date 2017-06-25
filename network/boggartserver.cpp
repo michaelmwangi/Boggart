@@ -53,11 +53,18 @@ void BoggartServer::run(){
     char buf[READ_BUF_SIZE];
     socklen_t client_len;
 
+    // time struct for worker heartbeat timeout
+    timeval timeoutctl, timeout;
+    timeoutctl.tv_sec = 3; // for now until we have a config file lets set the timeout value to 3 sec
+
     while(true){
+        // select has an annoying behaviour of modifying the some structs passed in in a kind of valu<->result semantics
+        timeout = timeoutctl;
         read_fds = tracker;
+        bool timerexpired = true;
         std::cout<<"waiting..."<<std::endl;
         // for now using select but will change to epoll later
-        if(select(fd_max+1, &read_fds, NULL, NULL, NULL) == -1){
+        if(select(fd_max+1, &read_fds, NULL, NULL, &timeout) == -1){
             std::cout<<"Could not wait for a connection"<<std::endl;
 
             if(errno == EINTR){
@@ -73,9 +80,10 @@ void BoggartServer::run(){
 
         for(int i=0; i <= fd_max; i++){
             if(FD_ISSET(i, &read_fds)){
+                timerexpired = false;
                 if(i == server_fd_){
                     // we have a new connection
-                    // although we refer to the connection as a client. The connection request may also be from a worker
+                    // although we refer to the connection as a client. -> (BoggartWorker or BoggartClient)
                     client_len = sizeof(client_addr);
 
                     int client_fd = accept(server_fd_, (struct sockaddr *)&client_addr, &client_len);
@@ -89,8 +97,6 @@ void BoggartServer::run(){
                         if(client_fd > fd_max){
                             fd_max = client_fd;
                         }                        
-                        std::cout<<"Got a new connection"<<std::endl;
-                        AddConnection(client_fd);
                     }
                 }else{
                     // someone just sent us some data
@@ -113,6 +119,11 @@ void BoggartServer::run(){
                     }
                 }
             }
+        }
+
+        // maybe the timer expired hmm
+        if (timerexpired){
+            std::cout<<"Timer expired"<<std::endl;
         }
     }
 }
@@ -153,8 +164,6 @@ void BoggartServer::ProcessIncomingData(const char * data, int fd){
 void BoggartServer::ProcessClientData(std::string payload, std::string servicename, int fd){
  // fetch the client from store
     try{
-        BoggartClient boggart_client = boggart_clients_.at(fd);
-        boggart_client.current_payload = payload;
         std::shared_ptr<Service> service = GetService(servicename);
         service->AddJob(payload);
         std::cout<<"Total jobs pending in service "<<servicename<<" "<<service->TotalJobs()<<std::endl;
@@ -198,27 +207,14 @@ void BoggartServer::ProcessWorkerData(std::string payload, std::string servicena
             worker->current_command = command;
             worker->file_descriptor = fd;
             worker->id = 0; // TODO change this to issue ID uniquely and incrementaly
+            worker->last_activity = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch().count());
 
             service->RegisterWorker(worker);
             service->AddWorker(worker);
 
         }
-
-//        service->AddWorker();
     }else if(command == OpCommands::worker_resp){
         // get worker response
     }
 }
 
-void BoggartServer::AddConnection(int filedescriptor){
-    BoggartClient boggart_client;
-    boggart_client.file_descriptor = filedescriptor;
-    boggart_client.current_payload = std::string("", READ_BUF_SIZE);
-    boggart_client.id = 0; // TODO change this to a unique incremental id 
-    boggart_clients_[filedescriptor] = boggart_client;
-}
-
-
-void BoggartServer::RemoveConnection(int filedescriptor){
-    boggart_clients_.erase(filedescriptor);
-}

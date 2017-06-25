@@ -15,6 +15,7 @@
 #include <stdexcept>
 #include <memory>
 #include <unordered_map>
+#include <sys/time.h>
 #include "rapidjson/document.h"
 #include "opdefinitions.h"
 #include "boggartworker.h"
@@ -29,14 +30,12 @@ private:
     std::string host_;
     std::string port_;
     int server_fd_;
-    std::unordered_map<int, BoggartClient> boggart_clients_;
     std::unordered_map<std::string, std::shared_ptr<Service>> services_;
     std::shared_ptr<Service> GetService(std::string servicename);
     void ProcessClientData(std::string payload, std::string service, int fd);
     void ProcessWorkerData(std::string payload, std::string servicename, std::string command, int fd);
     void ProcessIncomingData(const char *payload, int fd);
-    void AddConnection(int filedescriptor);
-    void RemoveConnection(int filedescriptor);
+    void PurgeWorkers();
     void CreateService(std::string servicename);
 public:
     BoggartServer(std::string host, std::string port);

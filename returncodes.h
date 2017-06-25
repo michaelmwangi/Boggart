@@ -3,7 +3,7 @@
 
 
 // this structure defines the return opertion return codes to the bogggart client
-enum class OpCodes{
+enum class ReturnCodes{
     pending = 202,
     ok = 200,
     created = 201,
