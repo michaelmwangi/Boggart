@@ -55,6 +55,15 @@ bool Service::WorkerExists(int fd){
      return true;
 }
 
+/**
+ * @brief Service::RegisterWorker
+ * Adds workers to this service worker registry aftre they issue a ready command
+ * @param workerfd: the Worker socket file descriptor
+ */
+void Service::RegisterWorker(std::shared_ptr<BoggartWorker> worker){
+    registered_workers_[worker->file_descriptor] = worker;
+}
+
 void Service::AddWorker(std::shared_ptr<BoggartWorker> worker){
     workers_.Push(worker);
 }

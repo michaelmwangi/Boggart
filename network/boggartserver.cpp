@@ -198,6 +198,8 @@ void BoggartServer::ProcessWorkerData(std::string payload, std::string servicena
             worker->current_command = command;
             worker->file_descriptor = fd;
             worker->id = 0; // TODO change this to issue ID uniquely and incrementaly
+
+            service->RegisterWorker(worker);
             service->AddWorker(worker);
 
         }
