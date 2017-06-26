@@ -1,9 +1,8 @@
 #include "service.h"
 
 
-Service::Service(std::string servicename):
-    servicename_ {servicename}
-{
+Service::Service(std::unique_ptr<ServiceConfig> &serviceconfig){
+    service_config_ = std::move(serviceconfig);
 
     // TODO find a way to keep track of this worker thread
 
@@ -19,7 +18,7 @@ Service::Service(std::string servicename):
  * to the workers
  */
 void Service::ConsumeJob(){
-    std::cout<<"Started to consume on "<<servicename_<<std::endl;
+    std::cout<<"Started to consume on "<<service_config_->name<<std::endl;
     while(true){
         // grab worker first before we start consuming
         std::shared_ptr<BoggartWorker> worker = workers_.WaitAndPop();

@@ -9,7 +9,7 @@ struct BoggartConfig{
     std::string host;
     std::string port;
     std::string host_name;
-    std::string heart_beat_timeout; // how long we are willing to wait (in seconds) before we declare a worker as dead
+    int heart_beat_timeout; // how long we are willing to wait (in seconds) before we declare a worker as dead
 };
 
 #endif // BOGGARTCONF_H

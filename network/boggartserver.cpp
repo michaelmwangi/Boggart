@@ -186,8 +186,11 @@ std::shared_ptr<Service> BoggartServer::GetService(std::string servicename){
     try{
          return services_.at(servicename);
     } catch (const std::out_of_range &excp){
+        std::unique_ptr<ServiceConfig> serviceconfig = std::make_unique<ServiceConfig>();
+        serviceconfig->name = servicename;
+        serviceconfig->worker_heart_beat = boggart_config_->heart_beat_timeout;
         // we could not get that service,proceed to create a new one
-        auto service = std::make_shared<Service>(servicename);
+        auto service = std::make_shared<Service>(serviceconfig);
         services_[servicename] = service;
         std::cout<<"created a new service "<<servicename<<std::endl;
         return service;

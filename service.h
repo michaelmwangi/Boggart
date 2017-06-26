@@ -12,11 +12,19 @@
 #include <uuid/uuid.h>
 #include "boggartqueue.h"
 #include "boggartworker.h"
+#include "boggartconfig.h"
 
+struct ServiceConfig{
+    std::string name;
+    int worker_heart_beat;
+};
 
-class Service{
+class Service{    
 private:
+
+    std::unique_ptr<ServiceConfig> service_config_;
     std::string servicename_;
+    std::shared_ptr<BoggartConfig> boggart_config_; // we should
     std::unordered_map<int, std::shared_ptr<BoggartWorker>> registered_workers_; // holds workers who have issued a READY cmd and are still active
     BoggartQueue<std::shared_ptr<BoggartWorker>> workers_; // Holds workers that are active and are being shuffled in between jobs
     BoggartQueue<std::pair<std::string, std::string>> jobs_; // holds the jobs to be processed by workers
@@ -24,7 +32,7 @@ private:
     BoggartQueue<std::pair<std::string, std::string>> sync_job_results_; // // holds the result of synchronous job results
 
 public:
-    Service(std::string servicename);
+    Service(std::unique_ptr<ServiceConfig> &serviceconfig);
     std::string GetResult(std::string jobid, bool sync=false);
     void AddJob(std::string workpayload);
     void RegisterWorker(std::shared_ptr<BoggartWorker> worker);
