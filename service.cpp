@@ -71,11 +71,24 @@ void Service::RegisterWorker(std::shared_ptr<BoggartWorker> worker){
  */
 void Service::PurgeWorkers(){
     std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
-    for(auto & workerentry: registered_workers_){
-        auto worker = workerentry.second;
+    auto worker_iter = registered_workers_.begin();
+    while(worker_iter != registered_workers_.end()){
+        auto worker = worker_iter->second;
         std::chrono::duration<double> seconds_diff = now - worker->last_activity;
+        if (seconds_diff.count() >= service_config_->worker_heart_beat){
+            std::cout<<"Removing worker "<<worker->id<<" last activity was "<< seconds_diff.count()<<" against a heart beat timeout of "<<service_config_->worker_heart_beat<<std::endl;
+            auto mark = worker_iter;
+            worker_iter++;
+            registered_workers_.erase(mark);
+            continue;
+        }
         std::cout<<"The last activity from this worker was "<<seconds_diff.count()<<std::endl;
+        worker_iter++;
     }
+//    for(auto & workerentry: registered_workers_){
+//        auto worker = workerentry.second;
+
+//    }
 }
 
 /**
