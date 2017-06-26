@@ -1,14 +1,15 @@
 ﻿#include "boggartserver.h"
 
-BoggartServer::BoggartServer(std::string host, std::string port): host_(host), port_(port)
+BoggartServer::BoggartServer(std::shared_ptr<BoggartConfig> boggartconfig)
 {
+    boggart_config_ = boggartconfig;
     struct addrinfo hints, *info_list;
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC; // ipv4, ipv6
     hints.ai_flags = AI_PASSIVE;
     hints.ai_socktype = SOCK_STREAM;
 
-    int addr_res = getaddrinfo(host_.c_str(), port_.c_str(), &hints, &info_list);
+    int addr_res = getaddrinfo(boggart_config_->host.c_str(), boggart_config_->port.c_str(), &hints, &info_list);
     if (addr_res != 0){
         std::cout<<"Could not prepare the address info due to "<<gai_strerror(addr_res)<<std::endl;
         exit(1);
@@ -29,7 +30,7 @@ BoggartServer::BoggartServer(std::string host, std::string port): host_(host), p
         close(server_fd_);
     }
     if(serv_info == NULL){
-        std::cout<<"Could not bind to "<<host_<<"::"<<port_<<std::endl;
+        std::cout<<"Could not bind to "<<boggart_config_->host<<"::"<<boggart_config_->port<<std::endl;
         exit(1);
     }
     freeaddrinfo(info_list);

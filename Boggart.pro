@@ -58,7 +58,8 @@ HEADERS += \
     boggartclient.h \
     boggartworker.h \
     boggartqueue.h \
-    returncodes.h
+    returncodes.h \
+    boggartconfig.h
 
 unix:!macx: LIBS += -L$$PWD/../../../usr/local/lib/ -lzmqpp
 

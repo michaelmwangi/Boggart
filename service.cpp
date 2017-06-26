@@ -64,6 +64,7 @@ void Service::RegisterWorker(std::shared_ptr<BoggartWorker> worker){
     registered_workers_[worker->file_descriptor] = worker;
 }
 
+
 /**
  * @brief Service::PurgeWorkers
  * Checks each worker last activity and proceeds to purge ones that havent whose lastactivity is beyond the

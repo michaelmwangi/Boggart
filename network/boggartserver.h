@@ -19,6 +19,7 @@
 #include "rapidjson/document.h"
 #include "opdefinitions.h"
 #include "boggartworker.h"
+#include "boggartconfig.h"
 #include "boggartclient.h"
 #include "service.h"
 
@@ -27,8 +28,7 @@
 
 class BoggartServer{
 private:
-    std::string host_;
-    std::string port_;
+    std::shared_ptr<BoggartConfig> boggart_config_;
     int server_fd_;
     std::unordered_map<std::string, std::shared_ptr<Service>> services_;
     std::shared_ptr<Service> GetService(std::string servicename);
@@ -38,7 +38,7 @@ private:
     void PurgeWorkers();
     void CreateService(std::string servicename);
 public:
-    BoggartServer(std::string host, std::string port);
+    BoggartServer(std::shared_ptr<BoggartConfig> boggartconfig);
     void run();    
 };
 
