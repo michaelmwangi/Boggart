@@ -1,4 +1,0 @@
-2017-03-12 09:38:06,154 - BoggartWorkerApi - INFO - Registering  task <function testi at 0x7f66ce671050>
-2017-03-12 09:44:24,074 - BoggartWorkerApi - INFO - Registering  task <function testi at 0x7f41eb544398>
-2017-03-12 09:44:33,545 - BoggartWorkerApi - DEBUG - Received ['7f545296-0708-11e7-8954-48d224ce1096', '{"age": "25", "name": "mike"}']
-2017-03-12 09:44:33,545 - BoggartWorkerApi - DEBUG - Sending task to worker 
