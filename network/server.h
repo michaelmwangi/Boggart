@@ -2,12 +2,11 @@
 #include <string>
 
 class Server{
-private:
-    struct sockaddr_in server_addr;
+private:    
     std::string ip_addr;
     int port;
-    int sock_fd;
+    int server_fd;
 public:
     Server(std::string ip, int port);
-    void listen();
-}
+    void start();
+};
