@@ -18,25 +18,63 @@ void EventLoop::new_client(){
         perror("Error accepting connection from client");
         FD_CLR(client_fd, &fd_tracker);
     }else{
-        FD_SET(client_fd, &fd_tracker); // start tracking the client fd
-        if(client_fd > fd_max){
-            fd_max = client_fd;
-        }
-        char hostname_buf[NI_MAXHOST];
-        char port_buf[NI_MAXSERV];
-        if(getnameinfo((struct sockaddr*)&client_addr, client_len, hostname_buf, NI_MAXHOST, port_buf, NI_MAXSERV, 0) == 0){
-            std::cout<<"Got a new connection from "<<hostname_buf<<":"<<port_buf<<std::endl;
+        
+        if (client_fd >= MAXFDS){
+            std::cout<<"Cannot accept client MAXFD reached"<<std::endl;
+
         }else{
-            perror("Error getting the client IP info");
+            FD_SET(client_fd, &fd_tracker); // start tracking the client fd
+            if(client_fd > max_fd){
+                max_fd = client_fd;
+            }
+            Client client = new Client();
+            client->id = 123 ;// TODO Im changing this placeholder            
+            char hostname_buf[NI_MAXHOST];
+            char port_buf[NI_MAXSERV];
+            if(getnameinfo((struct sockaddr*)&client_addr, client_len, hostname_buf, NI_MAXHOST, port_buf, NI_MAXSERV, 0) == 0){
+                std::cout<<"Got a new connection from "<<hostname_buf<<":"<<port_buf<<std::endl;
+                client->ip_addr = hostname_buf;
+            }else{
+                perror("Error getting the client IP info");
+            }
+
+            clients.insert({client_fd, client});
         }
+        
+    }
+}
+
+bool EventLoop::client_exists(int client_fd){
+    auto found_iter = clients.find(client_fd);
+    return found_iter == clients.end();
+}
+
+void EventLoop::remove_client(int client_fd){ 
+    auto found_iter = clients.find(client_fd);   
+    if(found_iter != clients.end()){
+        clients.erase(found_iter);
     }
 }
 
 /**
- * reads data from the client and adds to recv buffer of the client
+ * reads data from the client connection and adds to recv buffer of the client
  * */
-void EventLoop::recv_from_client(){
-
+void EventLoop::recv_from_client(int clientfd){
+    auto client_iter = clients.find(client_fd);
+    if(client_iter != clients.end()){
+        Client client = client_iter->second;
+        if((int numread = read(clientfd, &client.recv_buf, BUF_SIZE)) <=0){
+            if(numread == 0){
+                // we have reached EOF probably close the client socket
+                std::cout<<"Client closed connection"<<std::endl;
+                remove_client(client_fd);
+            }else{
+                // be more specific here and also log data pointing out to which client 
+                perror("Error reading from client")
+            }
+        }
+    }
+    
 }
 
 /**
@@ -45,22 +83,20 @@ void EventLoop::recv_from_client(){
 void EventLoop::loop(){    
     fd_set fd_tracker; // tracks the file descriptors list
     fd_set fd_transact; // used in select /its temp
-    int fd_max = server_fd;
+    max_fd = server_fd;
     FD_ZERO(&fd_tracker);
     FD_ZERO(&fd_transact);
     FD_SET(server_fd, &fd_tracker); 
         
-    char buf[BUF_SIZE];
-    int client_fd;
     while(true){
         fd_transact = fd_tracker;
         std::cout<<"waiting for connections"<<std::endl;
-        if (select(fd_max+1, &fd_transact, NULL, NULL, NULL) == -1){
+        if (select(max_fd+1, &fd_transact, NULL, NULL, NULL) == -1){
             perror("Error while select");
             exit(2);
         }
         
-        for(int i=0;i <= fd_max;i++){
+        for(int i=0;i <= max_fd;i++){
             if(FD_ISSET(i, &fd_transact)){
                 if(i == server_fd){
                     new_client();
